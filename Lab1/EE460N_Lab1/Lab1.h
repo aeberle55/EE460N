@@ -4,10 +4,10 @@
 #include <ctype.h> /* Library for useful character operations */
 #include <limits.h> /* Library for definitions of common variable type characteristics */
 
-struct Symbol{
+typedef struct{
 	int location;
 	char* label;
-};
+}Symbol;
 
 #define MAX_LINE_LENGTH 255
 enum
@@ -24,11 +24,15 @@ FILE* outfile = NULL;		//Output file stream
 int error=0;			//0 if no error; otherwise error code 1-4
 int origin;			//Starting point; set by .orig
 int PC;				//Program counter
-Symbol table[100];		//Array of symbol objects for symbol table
+int numSymbols = 0;	//Number of labels in symbol table
+Symbol table[255];		//Array of symbol objects for symbol table
 
+#define numCodes 24
 const char* codes = ("add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop",
 	"not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor",".orig",".fill",".end");
 
+#define numIllegal 4
+const char* illegalLabel = ("in","out","getc","putc");
 
 int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	** pOpcode, char ** pArg1, char ** pArg2, char ** pArg3, char ** pArg4
@@ -36,7 +40,7 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 
 int toNum( char * pStr ); 
 
-int SearchSymbol(char * sym);
+int searchSymbol(char * sym);
 
 int RegNum(char * reg);
 
@@ -47,3 +51,5 @@ int parseOpcode(char * opcode, int * steering);
 int isOpcode(char * code);
 
 void closeFiles();
+
+int readLabel(FILE * pInfile, char * pLine, char ** pLabel);
