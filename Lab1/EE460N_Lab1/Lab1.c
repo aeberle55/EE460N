@@ -3,24 +3,22 @@
 int main(int argc, char** argv)
 {
 	char* line;		//Last line read
-	char** label;	//Last label read
-	char** oCode;	//Last opcode read
-	char** a1;		//Last arguments read
-	char** a2;
-	char** a3;
-	char** a4;
-	char* labelLoc;	//Temporary Variable for symbol table generation
+	char* label;	//Last label read
+	char* oCode;	//Last opcode read
+	char* a1;		//Last arguments read
+	char* a2;
+	char* a3;
+	char* a4;
 	int stat;		//Status code of last line
-	int size;		//Tempory Variable for symbol table generation
 	char *prgName   = NULL;
     char *iFileName = NULL;
     char *oFileName = NULL;
-	int k;			//Temproary integer
 
     prgName   = argv[0];
     iFileName = argv[1];
     oFileName = argv[2];
 
+	line=(char*)malloc((MAX_LINE_LENGTH+1)*sizeof(char));
     printf("program name = '%s'\n", prgName);
     printf("input file name = '%s'\n", iFileName);
     printf("output file name = '%s'\n", oFileName);
@@ -28,25 +26,25 @@ int main(int argc, char** argv)
 	/* open the source file */
      infile = fopen(argv[1], "r");
      outfile = fopen(argv[2], "w");
-		 
-     if (!infile) {
+ 
+     if (infile==NULL) {
        printf("Error: Cannot open file %s\n", argv[1]);
        exit(4);
 		 }
-     if (!outfile) {
+     if (outfile==NULL) {
        printf("Error: Cannot open file %s\n", argv[2]);
        exit(4);
      }
 	 stat = EMPTY_LINE;
 	 while(stat == EMPTY_LINE)	//Find first line
-		stat=readAndParse( infile, line, label, oCode, a1, a2, a3, a4);
-	 if(strcmp(*oCode, ".orig")!=0)
+		stat=readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
+	 if(strcmp(oCode, ".orig")!=0)
 	 {
 		 printf("Error: File does not begin with .orig");
 		 closeFiles();
 		 exit(4);
 	 }
-	 origin = toNum(*a1);	//Make sure origin is in correct range
+	 origin = toNum(a1);	//Make sure origin is in correct range
 	 if(origin < 0 || origin > 65535)
 	 {
 		 printf("Error: Invalid Origin, must be between 0x0000 and 0xFFFF");
@@ -57,56 +55,10 @@ int main(int argc, char** argv)
 
 	 while(stat != DONE)
 	 {
-		 stat = readLabel(infile, line, label);
+		 stat = readLabel(infile, line, &label);
 		 if(*label != '\0')
 		 {
-			 size = strlen(*label);
-			 if(size > 20)	//Oversized Label
-			 {
-				printf("Error: The Label %s is too long; Must be less than 20 characters\n",label);
-				closeFiles();
-				exit(4);
-			 }
-			 if(searchSymbol(*label) != -1)	//Label is opcode
-			 {
-				printf("Error: The Label %s is used multiple times\n",label);
-				closeFiles();
-				exit(4);
-			 }
-			 for(k = 0; k<numIllegal;k++)	//Label is illegal
-			 {
-				 if(strcmp(*label, &illegalLabel[k])==0)
-				 {
-					printf("Error: The Label %s is an illegal label\n",label);
-					closeFiles();
-					exit(4);
-				 }
-			 }
-			if(**label == 'x' || !isalpha(**label))	//First letter of label not a letter, or is x
-			{
-				if(strcmp(*label, &illegalLabel[k])==0)
-				 {
-					printf("Error: The Label %s is an illegal label\n",label);
-					closeFiles();
-					exit(4);
-				 }
-			}
-			 for(k=1; k<size;k++)	//Checks for non-alphanumeric label
-			 {
-				 if(!isalnum(*(*label + k)))
-				 {
-					printf("Error: The Label %s is an illegal label\n",label);
-					closeFiles();
-					exit(4);
-				 }
-			 }
-
-			 labelLoc=(char*)malloc((size+1)*sizeof(char));	//Allocate memory for label
-			 strcpy(labelLoc,*label);	
-			 table[numSymbols].label=labelLoc;	//Add label to symbol tabel
-			 table[numSymbols].location=PC;
-			 numSymbols++;
-			 
+			 addLabel(&label);			 
 		 }
 		 //Increment PC
 		 if(stat == OK)
@@ -212,11 +164,11 @@ int toNum( char * pStr )
 int	readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	** pOpcode, char ** pArg1, char ** pArg2, char ** pArg3, char ** pArg4)
 	{
-	   char * lRet, * lPtr;
+	   char * lPtr;
 	   int i;
 	   if( !fgets( pLine, MAX_LINE_LENGTH, pInfile ) )
 		return( DONE );
-	   for( i = 0; i < strlen( pLine ); i++ )
+	   for( i = 0; i < (int)strlen( pLine ); i++ )
 		pLine[i] = tolower( pLine[i] );
 	   
            /* convert entire line to lowercase */
@@ -262,11 +214,11 @@ int	readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 //Find any label
 int readLabel(FILE * pInfile, char * pLine, char ** pLabel)
 {
-	char * lRet, * lPtr;
+	char * lPtr;
 	   int i;
 	   if( !fgets( pLine, MAX_LINE_LENGTH, pInfile ) )
 		return( DONE );
-	   for( i = 0; i < strlen( pLine ); i++ )
+	   for( i = 0; i < (int) strlen( pLine ); i++ )
 		pLine[i] = tolower( pLine[i] );
 	   
            /* convert entire line to lowercase */
@@ -289,4 +241,75 @@ int readLabel(FILE * pInfile, char * pLine, char ** pLabel)
 		if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) return( OK );
 	   }
 	   return(OK);
+}
+
+//Adds a label to the symbol table
+//Throws error if invalid label
+void addLabel(char** label)
+{
+	int size;
+	int k;
+	char* labelLoc;
+	if(numSymbols>=MAX_SYMBOLS)
+	{
+		printf("Error: Too many symbols\n",label);
+		closeFiles();
+		exit(4);
+	}
+	size = strlen(*label);
+	if(size > 20)	//Oversized Label
+	{
+		printf("Error: The Label %s is too long; Must be less than 20 characters\n",label);
+		closeFiles();
+		exit(4);
+	}
+	if(searchSymbol(*label) != -1)	//Label is opcode
+	{
+		printf("Error: The Label %s is used multiple times\n",label);
+		closeFiles();
+		exit(4);
+	}
+	for(k = 0; k<numIllegal;k++)	//Label is illegal
+	{
+		if(strcmp(*label, illegalLabel[k])==0)
+		{
+		printf("Error: The Label %s is an illegal label\n",label);
+		closeFiles();
+		exit(4);
+		}
+	}
+	if(**label == 'x' || !isalpha(**label))	//First letter of label not a letter, or is x
+	{
+		if(strcmp(*label, illegalLabel[k])==0)
+			{
+			printf("Error: The Label %s is an illegal label\n",label);
+			closeFiles();
+			exit(4);
+			}
+	}
+	for(k=1; k<size;k++)	//Checks for non-alphanumeric label
+	{
+		if(!isalnum(*(*label + k)))
+		{
+		printf("Error: The Label %s is an illegal label\n",label);
+		closeFiles();
+		exit(4);
+		}
+	}
+
+	labelLoc=(char*)malloc((size+1)*sizeof(char));	//Allocate memory for label
+	strcpy(labelLoc,*label);	
+	table[numSymbols].label=labelLoc;	//Add label to symbol tabel
+	table[numSymbols].location=PC;
+	numSymbols++;
+}
+
+int isOpcode(char * code)
+{
+	return -1;
+}
+
+int searchSymbol(char * sym)
+{
+	return -1;
 }

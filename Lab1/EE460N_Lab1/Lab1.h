@@ -10,6 +10,7 @@ typedef struct{
 }Symbol;
 
 #define MAX_LINE_LENGTH 255
+#define MAX_SYMBOLS 255
 enum
 {
    DONE, OK, EMPTY_LINE
@@ -28,11 +29,11 @@ int numSymbols = 0;	//Number of labels in symbol table
 Symbol table[255];		//Array of symbol objects for symbol table
 
 #define numCodes 24
-const char* codes = ("add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop",
-	"not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor",".orig",".fill",".end");
+char* codes[numCodes] = {"add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop",
+	"not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor",".orig",".fill",".end"};
 
 #define numIllegal 4
-const char* illegalLabel = ("in","out","getc","putc");
+char* illegalLabel[numIllegal] = {"in","out","getc","putc"};
 
 int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	** pOpcode, char ** pArg1, char ** pArg2, char ** pArg3, char ** pArg4
@@ -53,3 +54,5 @@ int isOpcode(char * code);
 void closeFiles();
 
 int readLabel(FILE * pInfile, char * pLine, char ** pLabel);
+
+void addLabel(char** label);
