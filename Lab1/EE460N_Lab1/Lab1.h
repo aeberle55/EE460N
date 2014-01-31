@@ -13,7 +13,7 @@ typedef struct{
 #define MAX_SYMBOLS 255
 enum
 {
-   DONE, OK, EMPTY_LINE
+   DONE, OK, EMPTY_LINE, END_OP
 };
 
 

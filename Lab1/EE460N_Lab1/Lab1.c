@@ -2,7 +2,6 @@
 //	Todo:
 //	processOpcode;	Generate the binary for each opcode
 //	parseOpcode;	Generate numeric representation of opcode from string
-//	RegNum;			Translates character string into register number
 //	genOffset;		Find an offset between two PC values
 //	searchSymbol;	Finds Symbol tabel entry for character string
 //	isOpcode;		Determines if a character string coorisponds to an opcode or not
@@ -92,7 +91,7 @@ int main(int argc, char** argv)
 				exit(2);
 			 }
 			 if(num == 17)
-				 stat=DONE;
+				 stat=END_OP;
 			 else
 			 {
 				 //Execute Opcode
@@ -101,9 +100,13 @@ int main(int argc, char** argv)
 			 }
 		 }
 	 }
-	 //Insert opcode parsing here
-
-
+	 //Must end with .end
+	 if(stat != END_OP)
+	 {
+		printf("Error: File does not have a .end pseudocode\n");
+		closeFiles();
+		exit(4);
+	 }
 	closeFiles();
     return 0;
 }
@@ -368,7 +371,14 @@ int genOffset(int offset, int maxDigits)
 //Returns -1 if not a valid register
 int RegNum(char * reg)
 {
-	return -1;
+	int toReturn = -1;
+	//invalid format
+	if(*reg != 'r'||!isdigit(*(reg+1))||*(reg+2)!='\n')
+		return -1;
+	toReturn =(int) (*(reg+1) - '0'); //Converts char to digit
+	if(toReturn <0 || toReturn >7)
+		return -1;
+	return toReturn;
 }
 
 //Returns integer equal to the binary representation of the opcode
@@ -392,6 +402,8 @@ int parseOpcode(char * opcode, int * steering)
 	return -1;
 }
 
+//Takes an opcode number, steering bit, and up to 4 arguments
+//Writes coresponing code to file, or throws appropriate error
 void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pArg3, char * pArg4)
 {
 	int output = 0;
@@ -548,11 +560,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);
 		}
-		temp = searchSymbol(pArg1);
-		if(temp != NULL)			//Allows addressing via labels
-			num = temp->location;
-		else
-			num = toNum(pArg1);
+		num = toNum(pArg1);
 		if(num>65535|| num< -32768)	//Can be signed or unsigned
 		{
 			printf("Error: TRAP Value Out of Bounds\n");
