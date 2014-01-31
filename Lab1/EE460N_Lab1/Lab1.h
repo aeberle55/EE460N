@@ -41,11 +41,11 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 
 int toNum( char * pStr ); 
 
-int searchSymbol(char * sym);
+Symbol* searchSymbol(char * sym);
 
 int RegNum(char * reg);
 
-int genOffsett(int offset, int maxDigits, int* isValid);
+int genOffset(int offset, int maxDigits);
 
 int parseOpcode(char * opcode, int * steering);
 
@@ -56,3 +56,6 @@ void closeFiles();
 int readLabel(FILE * pInfile, char * pLine, char ** pLabel);
 
 void addLabel(char** label);
+
+
+void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pArg3, char * pArg4);
