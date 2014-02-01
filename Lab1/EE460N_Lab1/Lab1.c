@@ -4,7 +4,6 @@
 //	parseOpcode;	Generate numeric representation of opcode from string
 //	genOffset;		Find an offset between two PC values
 //	searchSymbol;	Finds Symbol tabel entry for character string
-//	isOpcode;		Determines if a character string coorisponds to an opcode or not
 */
 
 #include "Lab1.h"
@@ -18,7 +17,7 @@ int main(int argc, char** argv)
 	char* a2;
 	char* a3;
 	char* a4;
-	int* steer;
+	int steer;
 	int stat;		//Status code of last line
 	int num;
 	char *prgName   = NULL;
@@ -29,6 +28,11 @@ int main(int argc, char** argv)
     iFileName = argv[1];
     oFileName = argv[2];
 
+	//For manual testing
+	/*prgName   = "OutProgram";
+    iFileName = "labelTest.txt";
+    oFileName = "labeOut.txt";*/
+
 	line=(char*)malloc((MAX_LINE_LENGTH+1)*sizeof(char));
     printf("program name = '%s'\n", prgName);
     printf("input file name = '%s'\n", iFileName);
@@ -37,6 +41,10 @@ int main(int argc, char** argv)
 	/* open the source file */
      infile = fopen(argv[1], "r");
      outfile = fopen(argv[2], "w");
+
+	 //For manual testing
+	/*infile = fopen(iFileName, "r");
+     outfile = fopen(oFileName, "w");*/
  
      if (infile==NULL) {
        printf("Error: Cannot open file %s\n", argv[1]);
@@ -77,13 +85,16 @@ int main(int argc, char** argv)
 	 }
 	 rewind(infile);
 	 PC=origin;
-	 stat = OK;
-	 while(stat != DONE)
+	 stat = EMPTY_LINE;
+	 while(stat == EMPTY_LINE)	//Finds .orig and goes to next line
+		stat=readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
+	 while(stat != DONE&&stat!=END_OP)
 	 {
 		 stat = readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
 		 if(stat == OK)
 		 {
-			 num = parseOpcode(oCode,steer);
+			 steer = 0;
+			 num = parseOpcode(oCode,&steer);
 			 if(num== -1)
 			 {
 				printf("Error: %s is not a valid opcode\n",oCode);
@@ -95,7 +106,7 @@ int main(int argc, char** argv)
 			 else
 			 {
 				 //Execute Opcode
-				processOpcode( num, steer, a1, a2, a3, a4);
+				processOpcode( num, &steer, a1, a2, a3, a4);
 				PC+=2;
 			 }
 		 }
@@ -349,6 +360,12 @@ void addLabel(char** label)
 //Returns 0 if not an opcode; 1 otherwise
 int isOpcode(char * code)
 {
+	int x;
+	for(x=0;x<numCodes;x++)
+	{
+		if(strcmp(code, codes[x])==0)
+		return 1;
+	}
 	return 0;
 }
 
@@ -373,7 +390,7 @@ int RegNum(char * reg)
 {
 	int toReturn = -1;
 	//invalid format
-	if(*reg != 'r'||!isdigit(*(reg+1))||*(reg+2)!='\n')
+	if(*reg != 'r'||!isdigit(*(reg+1))||*(reg+2)!='\0')
 		return -1;
 	toReturn =(int) (*(reg+1) - '0'); //Converts char to digit
 	if(toReturn <0 || toReturn >7)
@@ -399,6 +416,17 @@ int RegNum(char * reg)
 int parseOpcode(char * opcode, int * steering)
 {
 	*steering = 0;
+	if(strcmp(opcode, "add")==0)
+		return 1;
+	if(strcmp(opcode, ".end")==0)
+		return 17;
+	if(strcmp(opcode, "not")==0)
+	{
+		*steering = 1;
+		return 9;
+	}
+	if(strcmp(opcode, "xor")==0)
+		return 9;
 	return -1;
 }
 
@@ -438,13 +466,13 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		DR = RegNum(pArg1);
 		SR1 = RegNum(pArg2);
 		//Too many arguments, or invalid
-		if(*pArg3 != '\0' || *pArg4 != '\0'||SR1 == -1 || DR == -1)	
+		if(*pArg4 != '\0'||SR1 == -1 || DR == -1)	
 		{
 			printf("Error: invalid argument\n");
 			closeFiles();
 			exit(4);
 		}
-		code += DR<<9+SR1<<6;	//Common to all implementations
+		output += (DR<<9)+(SR1<<6);	//Common to all implementations
 		if(*steer == 0)
 		{
 			SR2=RegNum(pArg3);
@@ -457,28 +485,53 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 					closeFiles();
 					exit(3);
 				}
-				code+= 1<<5 + num;
+				output+= (1<<5) + num;
 			}
 			else	//Register value
 			{
-				code+=SR2;
+				output+=SR2;
 			}
 		}
 		else	//NOT function
 		{
+			if(*pArg3 != '\0')
+			{
+				printf("Error: invalid argument\n");
+				closeFiles();
+				exit(4);
+			}
 			output += 63;
 		}
 		break;
 	//Opcodes 10 and 11 are invalid
 	case 12:	//JMP
-		SR1 = RegNum(pArg1);
-		if(*pArg2 != '\0' ||*pArg3 != '\0' || *pArg4 != '\0'||SR1==-1)
+		if(*pArg2 != '\0' ||*pArg3 != '\0' || *pArg4 != '\0')
 		{
 			printf("Error: invalid argument\n");
 			closeFiles();
 			exit(4);
 		}
-		output+=SR1<<6;
+		if(*steer == 0)
+		{
+			SR1 = RegNum(pArg1);
+			if(SR1==-1)	//Must be valid register 
+			{
+				printf("Error: invalid argument\n");
+				closeFiles();
+				exit(4);
+			}
+			output+=SR1<<6;
+		}
+		else	//RET
+		{
+			if(*pArg1 != '\0')	//Should not have anything here
+			{
+				printf("Error: invalid argument\n");
+				closeFiles();
+				exit(4);
+			}
+			output+=7<<6;
+		}
 		break;
 	case 13:	//Shift
 		DR = RegNum(pArg1);
@@ -497,7 +550,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			exit(3);
 		}
 		//Steering integer also acts as steering bits
-		output += DR<<9+SR1<<6+(*steer)<<4+num;
+		output += (DR<<9)+(SR1<<6)+((*steer)<<4)+num;
 		break;
 	case 14:	//LEA
 		DR = RegNum(pArg1);
@@ -515,7 +568,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			exit(4);
 		}
 		num = genOffset(temp->location-PC,9);	//genOffset will throw out of bounds error if necisarry
-		output=DR<<9+num;
+		output=(DR<<9)+num;
 		break;
 	case 15:	//TRAP
 		//Must be hex
