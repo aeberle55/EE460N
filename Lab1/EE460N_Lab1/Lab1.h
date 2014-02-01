@@ -17,16 +17,16 @@ enum
 };
 
 
-char *prgName   = NULL;	//Name of Program
-char *iFileName = NULL;	//Input file name
-char *oFileName = NULL;	//Output file name
-FILE* infile = NULL;		//Input file stream
-FILE* outfile = NULL;		//Output file stream
-int error=0;			//0 if no error; otherwise error code 1-4
-int origin;			//Starting point; set by .orig
-int PC;				//Program counter
-int numSymbols = 0;	//Number of labels in symbol table
-Symbol table[255];		//Array of symbol objects for symbol table
+char *prgName   = NULL;	/*Name of Program */
+char *iFileName = NULL;	/*Input file name */
+char *oFileName = NULL;	/*Output file name */
+FILE* infile = NULL;		/*Input file stream */
+FILE* outfile = NULL;		/*Output file stream */
+int error=0;			/*0 if no error; otherwise error code 1-4 */
+int origin;			/*Starting point; set by .orig */
+int PC;				/*Program counter */
+int numSymbols = 0;	/*Number of labels in symbol table */
+Symbol table[255];		/*Array of symbol objects for symbol table */
 
 #define numCodes 24
 char* codes[numCodes] = {"add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop",

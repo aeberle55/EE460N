@@ -1,24 +1,24 @@
 /*
-//	Todo:
-//	processOpcode;	Generate the binary for each opcode
-//	parseOpcode;	Generate numeric representation of opcode from string
-//	genOffset;		Find an offset between two PC values
-//	searchSymbol;	Finds Symbol tabel entry for character string
+	Todo:
+	processOpcode;	Generate the binary for each opcode
+	parseOpcode;	Generate numeric representation of opcode from string
+	genOffset;		Find an offset between two PC values
+	searchSymbol;	Finds Symbol tabel entry for character string
 */
 
 #include "Lab1.h"
 
 int main(int argc, char** argv)
 {
-	char* line;		//Last line read
-	char* label;	//Last label read
-	char* oCode;	//Last opcode read
-	char* a1;		//Last arguments read
+	char* line;		/*Last line read */
+	char* label;	/*Last label read*/
+	char* oCode;	/*Last opcode read*/
+	char* a1;		/*Last arguments read*/
 	char* a2;
 	char* a3;
 	char* a4;
 	int steer;
-	int stat;		//Status code of last line
+	int stat;		/*Status code of last line*/
 	int num;
 	char *prgName   = NULL;
     char *iFileName = NULL;
@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     iFileName = argv[1];
     oFileName = argv[2];
 
-	//For manual testing
+	/*For manual testing*/
 	/*prgName   = "OutProgram";
     iFileName = "labelTest.txt";
     oFileName = "labeOut.txt";*/
@@ -42,8 +42,8 @@ int main(int argc, char** argv)
      infile = fopen(argv[1], "r");
      outfile = fopen(argv[2], "w");
 
-	 //For manual testing
-	/*infile = fopen(iFileName, "r");
+	 /*For manual testing
+	infile = fopen(iFileName, "r");
      outfile = fopen(oFileName, "w");*/
  
      if (infile==NULL) {
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
        exit(4);
      }
 	 stat = EMPTY_LINE;
-	 while(stat == EMPTY_LINE)	//Find first line
+	 while(stat == EMPTY_LINE)	/*Find first line */
 		stat=readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
 	 if(strcmp(oCode, ".orig")!=0)
 	 {
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 		 closeFiles();
 		 exit(4);
 	 }
-	 origin = toNum(a1);	//Make sure origin is in correct range
+	 origin = toNum(a1);	/*Make sure origin is in correct range */
 	 if(origin < 0 || origin > 65535)
 	 {
 		 printf("Error: Invalid Origin, must be between 0x0000 and 0xFFFF");
@@ -79,14 +79,14 @@ int main(int argc, char** argv)
 		 {
 			 addLabel(&label);			 
 		 }
-		 //Increment PC
+		 /*Increment PC */
 		 if(stat == OK)
 			 PC+=2;
 	 }
 	 rewind(infile);
 	 PC=origin;
 	 stat = EMPTY_LINE;
-	 while(stat == EMPTY_LINE)	//Finds .orig and goes to next line
+	 while(stat == EMPTY_LINE)	/*Finds .orig and goes to next line */
 		stat=readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
 	 while(stat != DONE&&stat!=END_OP)
 	 {
@@ -105,13 +105,13 @@ int main(int argc, char** argv)
 				 stat=END_OP;
 			 else
 			 {
-				 //Execute Opcode
+				 /*Execute Opcode */
 				processOpcode( num, &steer, a1, a2, a3, a4);
 				PC+=2;
 			 }
 		 }
 	 }
-	 //Must end with .end
+	 /*Must end with .end */
 	 if(stat != END_OP)
 	 {
 		printf("Error: File does not have a .end pseudocode\n");
@@ -123,19 +123,19 @@ int main(int argc, char** argv)
 }
 
 
-//Closes input and output files
+/*Closes input and output files */
 void closeFiles()
 {
 	int x;
 	fclose(infile);
     fclose(outfile);
-	//Prevent memory leaks
+	/*Prevent memory leaks */
 	for(x=0; x<numSymbols;x++)
 		free(table[x].label);
 }
 
-//Converts null terminated char string to a number
-//Works on decimal or hex
+/*Converts null terminated char string to a number */
+/*Works on decimal or hex */
 int toNum( char * pStr )
 {
    char * t_ptr;
@@ -203,12 +203,12 @@ int toNum( char * pStr )
 }
 
 
-//Takes a file and parses into elements; returns int based on findings
-// FILE * pInfile – file containing next line
-// char * pLine – location to put unparsed line
-// char ** pLabel – Pointer to label
-// char ** pOpcode – Pointer to opcode
-// char ** pArg… - Pointer to up to 4 arguments
+/*Takes a file and parses into elements; returns int based on findings
+ FILE * pInfile – file containing next line
+ char * pLine – location to put unparsed line
+ char ** pLabel – Pointer to label
+ char ** pOpcode – Pointer to opcode
+ char ** pArg… - Pointer to up to 4 arguments */
 int	readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	** pOpcode, char ** pArg1, char ** pArg2, char ** pArg3, char ** pArg4)
 	{
@@ -259,7 +259,7 @@ int	readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	   return( OK );
 	}
 
-//Find any label
+/*Find any label */
 int readLabel(FILE * pInfile, char * pLine, char ** pLabel)
 {
 	char * lPtr;
@@ -291,8 +291,8 @@ int readLabel(FILE * pInfile, char * pLine, char ** pLabel)
 	   return(OK);
 }
 
-//Adds a label to the symbol table
-//Throws error if invalid label
+/*Adds a label to the symbol table */
+/*Throws error if invalid label */
 void addLabel(char** label)
 {
 	int size;
@@ -305,19 +305,19 @@ void addLabel(char** label)
 		exit(4);
 	}
 	size = strlen(*label);
-	if(size > 20)	//Oversized Label
+	if(size > 20)	/*Oversized Label */
 	{
 		printf("Error: The Label %s is too long; Must be less than 20 characters\n",label);
 		closeFiles();
 		exit(4);
 	}
-	if(searchSymbol(*label) != NULL)	//Label is opcode
+	if(searchSymbol(*label) != NULL)	/*Label is opcode */
 	{
 		printf("Error: The Label %s is used multiple times\n",label);
 		closeFiles();
 		exit(4);
 	}
-	for(k = 0; k<numIllegal;k++)	//Label is illegal
+	for(k = 0; k<numIllegal;k++)	/*Label is illegal */
 	{
 		if(strcmp(*label, illegalLabel[k])==0)
 		{
@@ -326,7 +326,7 @@ void addLabel(char** label)
 		exit(4);
 		}
 	}
-	if(**label == 'x' || !isalpha(**label))	//First letter of label not a letter, or is x
+	if(**label == 'x' || !isalpha(**label))	/*First letter of label not a letter, or is x */
 	{
 		if(strcmp(*label, illegalLabel[k])==0)
 			{
@@ -335,7 +335,7 @@ void addLabel(char** label)
 			exit(4);
 			}
 	}
-	for(k=1; k<size;k++)	//Checks for non-alphanumeric label
+	for(k=1; k<size;k++)	/*Checks for non-alphanumeric label */
 	{
 		if(!isalnum(*(*label + k)))
 		{
@@ -350,14 +350,14 @@ void addLabel(char** label)
 		closeFiles();
 		exit(4);
 	}
-	labelLoc=(char*)malloc((size+1)*sizeof(char));	//Allocate memory for label
+	labelLoc=(char*)malloc((size+1)*sizeof(char));	/*Allocate memory for label */
 	strcpy(labelLoc,*label);	
-	table[numSymbols].label=labelLoc;	//Add label to symbol tabel
+	table[numSymbols].label=labelLoc;	/*Add label to symbol tabel */
 	table[numSymbols].location=PC;
 	numSymbols++;
 }
 
-//Returns 0 if not an opcode; 1 otherwise
+/*Returns 0 if not an opcode; 1 otherwise */
 int isOpcode(char * code)
 {
 	int x;
@@ -369,50 +369,50 @@ int isOpcode(char * code)
 	return 0;
 }
 
-//Returns line number of a given symbol sym
-//Return Null if not found or invalid label
+/*Returns line number of a given symbol sym */
+/*Return Null if not found or invalid label */
 Symbol* searchSymbol(char * sym)
 {
 	return NULL;
 }
 
-//Generates an offset based on the current PC and an offset
-//Throws error is number of necessary digits for offset exceeds 
-//maxDigits; 1 otherwise
+/*Generates an offset based on the current PC and an offset */
+/*Throws error is number of necessary digits for offset exceeds  */
+/*maxDigits; 1 otherwise */
 int genOffset(int offset, int maxDigits)
 {
 	return 0;
 }
 
-//Returns integer corresponding to register of character string reg
-//Returns -1 if not a valid register
+/*Returns integer corresponding to register of character string reg */
+/*Returns -1 if not a valid register */
 int RegNum(char * reg)
 {
 	int toReturn = -1;
-	//invalid format
+	/*invalid format */
 	if(*reg != 'r'||!isdigit(*(reg+1))||*(reg+2)!='\0')
 		return -1;
-	toReturn =(int) (*(reg+1) - '0'); //Converts char to digit
+	toReturn =(int) (*(reg+1) - '0'); /*Converts char to digit */
 	if(toReturn <0 || toReturn >7)
 		return -1;
 	return toReturn;
 }
 
-//Returns integer equal to the binary representation of the opcode
-//Return 16 for .fill, 17 for .end, and -1 for an invalid opcode
-//sets steering if necessary for special cases due to overloaded opcodes
-//Special Cases:
-	//JSR - steering=1
-	//JSRR – steering=0
-	//LSHF – steering=0
-	//RSHFL – steering=1
-	//RSHFA – steering=3
-	//NOP – steering=1
-	//HALT – steering=1
-	//NOT – steering=1
-	//JMP – steering=0
-	//RET – steering=1
-	//Otherwise – steering=0
+/*Returns integer equal to the binary representation of the opcode */
+/*Return 16 for .fill, 17 for .end, and -1 for an invalid opcode */
+/*sets steering if necessary for special cases due to overloaded opcodes */
+/*Special Cases:
+	JSR - steering=1
+	JSRR – steering=0
+	LSHF – steering=0
+	RSHFL – steering=1
+	RSHFA – steering=3
+	NOP – steering=1
+	HALT – steering=1
+	NOT – steering=1
+	JMP – steering=0
+	RET – steering=1
+	Otherwise – steering=0 */
 int parseOpcode(char * opcode, int * steering)
 {
 	*steering = 0;
@@ -430,8 +430,8 @@ int parseOpcode(char * opcode, int * steering)
 	return -1;
 }
 
-//Takes an opcode number, steering bit, and up to 4 arguments
-//Writes coresponing code to file, or throws appropriate error
+/*Takes an opcode number, steering bit, and up to 4 arguments */
+/*Writes coresponing code to file, or throws appropriate error */
 void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pArg3, char * pArg4)
 {
 	int output = 0;
@@ -462,24 +462,24 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		break;
 	case 8:
 		break;
-	case 9:			//XOR and NOT
+	case 9:			/*XOR and NOT */
 		DR = RegNum(pArg1);
 		SR1 = RegNum(pArg2);
-		//Too many arguments, or invalid
+		/*Too many arguments, or invalid */
 		if(*pArg4 != '\0'||SR1 == -1 || DR == -1)	
 		{
 			printf("Error: invalid argument\n");
 			closeFiles();
 			exit(4);
 		}
-		output += (DR<<9)+(SR1<<6);	//Common to all implementations
+		output += (DR<<9)+(SR1<<6);	/*Common to all implementations */
 		if(*steer == 0)
 		{
 			SR2=RegNum(pArg3);
-			if(SR2 == -1)		//Immediate Value
+			if(SR2 == -1)		/*Immediate Value */
 			{
 				num = toNum(pArg3);
-				if(num>15 || num < -16)	//5 Bits
+				if(num>15 || num < -16)	/*5 Bits */
 				{
 					printf("Error: Immediate Value Out of Bounds\n");
 					closeFiles();
@@ -487,12 +487,12 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 				}
 				output+= (1<<5) + num;
 			}
-			else	//Register value
+			else	/*Register value */
 			{
 				output+=SR2;
 			}
 		}
-		else	//NOT function
+		else	/*NOT function */
 		{
 			if(*pArg3 != '\0')
 			{
@@ -503,8 +503,8 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			output += 63;
 		}
 		break;
-	//Opcodes 10 and 11 are invalid
-	case 12:	//JMP
+	/*Opcodes 10 and 11 are invalid */
+	case 12:	/*JMP */
 		if(*pArg2 != '\0' ||*pArg3 != '\0' || *pArg4 != '\0')
 		{
 			printf("Error: invalid argument\n");
@@ -514,7 +514,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		if(*steer == 0)
 		{
 			SR1 = RegNum(pArg1);
-			if(SR1==-1)	//Must be valid register 
+			if(SR1==-1)	/*Must be valid register  */
 			{
 				printf("Error: invalid argument\n");
 				closeFiles();
@@ -522,10 +522,10 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			}
 			output+=SR1<<6;
 		}
-		else	//RET
+		else	/*RET */
 		{
-			if(*pArg1 != '\0')	//Should not have anything here
-			{
+			if(*pArg1 != '\0')	/*Should not have anything here */
+			{ 
 				printf("Error: invalid argument\n");
 				closeFiles();
 				exit(4);
@@ -533,7 +533,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			output+=7<<6;
 		}
 		break;
-	case 13:	//Shift
+	case 13:	/*Shift */
 		DR = RegNum(pArg1);
 		SR1 = RegNum(pArg2);
 		num = toNum(pArg3);
@@ -549,13 +549,13 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(3);
 		}
-		//Steering integer also acts as steering bits
+		/*Steering integer also acts as steering bits */
 		output += (DR<<9)+(SR1<<6)+((*steer)<<4)+num;
 		break;
-	case 14:	//LEA
+	case 14:	/*LEA */
 		DR = RegNum(pArg1);
 		temp = searchSymbol(pArg2);
-		if(temp == NULL)	//Label not found in symbol tabel
+		if(temp == NULL)	/*Label not found in symbol tabel */
 		{
 			printf("Error: Unidentified Label\n");
 			closeFiles();
@@ -567,18 +567,18 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);
 		}
-		num = genOffset(temp->location-PC,9);	//genOffset will throw out of bounds error if necisarry
+		num = genOffset(temp->location-PC,9);	/*genOffset will throw out of bounds error if necisarry */
 		output=(DR<<9)+num;
 		break;
-	case 15:	//TRAP
-		//Must be hex
+	case 15:	/*TRAP */
+		/*Must be hex */
 		if(*pArg2 != '\0' || *pArg3 != '\0' || *pArg4 != '\0')
 		{
 			printf("Error: invalid argument\n");
 			closeFiles();
 			exit(4);
 		}
-		if(*steer == 1)	//HALT
+		if(*steer == 1)	/*HALT */
 		{
 			if(*pArg1 != '\0')
 			{
@@ -590,14 +590,14 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		}
 		else
 		{
-			if(*pArg1 != 'x')	//Must be a hex value
+			if(*pArg1 != 'x')	/*Must be a hex value */
 			{
 				printf("Error: TRAP must be a hex value\n");
 				closeFiles();
 				exit(3);
 			}
 			num = toNum(pArg1);
-			if(num>255||num<0)		//>0 and no more than 8 digits
+			if(num>255||num<0)		/*>0 and no more than 8 digits */
 			{
 				printf("Error: TRAP Value Out of Bounds\n");
 				closeFiles();
@@ -606,7 +606,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		}
 		output+=num;
 		break;
-	case 16:	//.FILL
+	case 16:	/*.FILL */
 		if(*pArg2 != '\0' || *pArg3 != '\0' || *pArg4 != '\0')
 		{
 			printf("Error: invalid argument\n");
@@ -614,7 +614,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			exit(4);
 		}
 		num = toNum(pArg1);
-		if(num>65535|| num< -32768)	//Can be signed or unsigned
+		if(num>65535|| num< -32768)	/*Can be signed or unsigned */
 		{
 			printf("Error: TRAP Value Out of Bounds\n");
 			closeFiles();
@@ -627,5 +627,5 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		closeFiles();
 		exit(2);
 	}
-	fprintf( outfile, "0x%0.4X\n", output );		//Prints out formated Hex version of code
+	fprintf( outfile, "0x%0.4X\n", output );		/*Prints out formated Hex version of code */
 }
