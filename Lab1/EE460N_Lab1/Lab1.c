@@ -430,7 +430,7 @@ int parseOpcode(char * opcode, int * steering)
 		*steering = 1;
 		return 4;
 	}
-	if(strcmp(opcode, "jsrr")==0)
+	if(strcmp(opcode, "jsrr")==0) {
 		*steering = 0;
 		return 4;
 	}
@@ -452,7 +452,7 @@ int parseOpcode(char * opcode, int * steering)
 	}
 	if(strcmp(opcode, "rti")==0)
 		return 8;
-	if(strcmp(opcode,i "lshf")==0) {
+	if(strcmp(opcode, "lshf")==0) {
 		*steering = 0;
 		return 13;
 	}
@@ -516,14 +516,9 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);
 		}
-		output += (DR<<9)+(SR1<<6);	/*Common to all implementations */
-		if(*steer == 0)
-		{
-			/* add from register */	
-			SR2=RegNum(pArg3);
-			output+=SR2;
-		}
-		else	/*Immediate Value */
+		output += (DR<<9)+(SR1<<6);	/*Common to all implementations */		
+		SR2=RegNum(pArg3);
+		if(SR2 == -1)		/*Immediate Value */
 		{
 			num = toNum(pArg3);
 			if(num>15 || num < -16)	/*5 Bits */
@@ -534,7 +529,11 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			}
 			output+= (1<<5) + num;
 		}
-
+		else	/*Register value */
+		{
+			output+=SR2;
+		}
+		
 		break;
 	case 2:
 		break;
