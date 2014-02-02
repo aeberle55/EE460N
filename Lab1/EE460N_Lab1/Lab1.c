@@ -407,8 +407,17 @@ int RegNum(char * reg)
 	LSHF – steering=0
 	RSHFL – steering=1
 	RSHFA – steering=3
-	NOP – steering=1
-	BR - steering=0
+	
+	NOP – steering=0
+	BRN - steering=4 (100)
+	BRZ - steering=2 (010)
+	BRP - steering=1 (001)
+	BRNZ - steering=6 (110)	
+	BRNP - steering=5 (101)
+	BRZP - steering=3 (011)
+	BR - steering=7 (111)
+	BRNZP - steering=7 (111)
+	
 	HALT – steering=1
 	TRAP - steering=0
 	NOT – steering=1
@@ -422,8 +431,39 @@ int parseOpcode(char * opcode, int * steering)
 		return 1;
 	if(strcmp(opcode, "and")==0)
 		return 5;
-	if(strcmp(opcode, "brn")==0 ||  strcmp(opcode, "brz")==0 || strcmp(opcode, "brp")==0 || strcmp(opcode, "brnz")==0 || strcmp(opcode, "brnp")==0 || strcmp(opcode, "brzp")==0 || strcmp(opcode, "br")==0 || strcmp(opcode, "brnzp")==0)
-		return 0; 
+	if(strcmp(opcode, "brn")==0) {
+		*steering = 4;
+		return 0;
+	} 
+	if(strcmp(opcode, "brz")==0) {
+		*steering = 2;
+		return 0;
+	} 
+	if(strcmp(opcode, "brp")==0 ) {
+		*steering = 1;
+		return 0;
+	} 
+	if(strcmp(opcode, "brnz")==0 ) {
+		*steering = 6;
+		return 0;
+	} 
+	if(strcmp(opcode, "brnp")==0 ) {
+		*steering = 5;
+		return 0;
+	} 
+	if(strcmp(opcode, "brzp")==0 ) {
+		*steering = 3;
+		return 0;
+	} 
+	if(strcmp(opcode, "br")==0 ) {
+		*steering = 7;
+		return 0;
+	} 
+	if(strcmp(opcode, "brnzp")==0) {
+		*steering = 7;
+		return 0;
+	} 
+
 	if(strcmp(opcode, "jmp")==0)
 		return 12;    
 	if(strcmp(opcode, "jsr")==0) {
@@ -479,7 +519,7 @@ int parseOpcode(char * opcode, int * steering)
 		return 15;
 	}
 	if(strcmp(opcode, "nop")==0) {
-		*steering=1;
+		*steering=0;
 		return 0;
 	}
 	if(strcmp(opcode, ".fill")==0)
@@ -504,9 +544,27 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		output = code<<12;
 	switch (code)
 	{
-	case 0:
+	case 0:  /* BR if steering is 1-7 and NOP if 0 */
+		if(*pArg2 != '\0' || *pArg3 != '\0' || *pArg4 !='\0'){
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);	
+		}
+		if(*steering==0 && *pArg1 != '\0') {
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		
+		if(*steering != 0) {
+			/* br with nzp bits specified by steering */
+			output += *steering<<9;
+			num = genOffset(temp->location-PC,9);	/*genOffset will throw out of bounds error if necisarry */
+			output += num;
+		}	
+		
 		break;
-	case 1:			/*ADD */
+	case 1:		/*ADD */
 		DR = RegNum(pArg1);
 		SR1 = RegNum(pArg2);
 		/*Too many arguments, or invalid */
@@ -541,7 +599,34 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		break;
 	case 4:
 		break;
-	case 5:
+	case 5:	/*ADD */
+		DR = RegNum(pArg1);
+		SR1 = RegNum(pArg2);
+		/*Too many arguments, or invalid */
+		if(*pArg4 != '\0'||SR1 == -1 || DR == -1)	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += (DR<<9)+(SR1<<6);	/*Common to all implementations */		
+		SR2=RegNum(pArg3);
+		if(SR2 == -1)		/*Immediate Value */
+		{
+			num = toNum(pArg3);
+			if(num>15 || num < -16)	/*5 Bits */
+			{
+				printf("Error: Immediate Value Out of Bounds\n");
+				closeFiles();
+				exit(3);
+			}
+			output+= (1<<5) + num;
+		}
+		else	/*Register value */
+		{
+			output+=SR2;
+		}
+		
 		break;
 	case 6:
 		break;
