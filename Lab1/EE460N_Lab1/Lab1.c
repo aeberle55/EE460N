@@ -24,14 +24,14 @@ int main(int argc, char** argv)
     char *iFileName = NULL;
     char *oFileName = NULL;
 
-    prgName   = argv[0];
+    /*prgName   = argv[0];
     iFileName = argv[1];
-    oFileName = argv[2];
+    oFileName = argv[2];*/
 
 	/*For manual testing*/
-	/*prgName   = "OutProgram";
-    iFileName = "labelTest.txt";
-    oFileName = "labeOut.txt";*/
+	prgName   = "OutProgram";
+    iFileName = "test1.txt";
+    oFileName = "labeOut.txt";
 
 	line=(char*)malloc((MAX_LINE_LENGTH+1)*sizeof(char));
     printf("program name = '%s'\n", prgName);
@@ -39,12 +39,12 @@ int main(int argc, char** argv)
     printf("output file name = '%s'\n", oFileName);
 
 	/* open the source file */
-     infile = fopen(argv[1], "r");
-     outfile = fopen(argv[2], "w");
+     /*infile = fopen(argv[1], "r");
+     outfile = fopen(argv[2], "w");*/
 
-	 /*For manual testing
+	 /*For manual testing*/
 	infile = fopen(iFileName, "r");
-     outfile = fopen(oFileName, "w");*/
+     outfile = fopen(oFileName, "w");
  
      if (infile==NULL) {
        printf("Error: Cannot open file %s\n", argv[1]);
@@ -375,7 +375,7 @@ int isOpcode(char * code)
 Symbol* searchSymbol(char * sym)
 {
 	int i;
-	for(i=0; i<MAX_SYMBOLS; i++) {
+	for(i=0; i<numSymbols; i++) {
 		if(strcmp(sym,table[i].label)==0) {
 			return &table[i];
 		}
@@ -587,7 +587,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		if(*steer != 0) {
 			/* br with nzp bits specified by steering */
 			output += *steer<<9;
-			temp = searchSymbol(pArg2);
+			temp = searchSymbol(pArg1);
 			if(temp == NULL)	/*Label not found in symbol tabel */
 			{
 				printf("Error: Unidentified Label\n");
@@ -595,7 +595,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 				exit(1);
 			}
 			num = genOffset(temp->location,9);	/*genOffset will throw out of bounds error if necisarry */
-			output += num;
+			output += (num&511);
 		}	
 		
 		break;
@@ -620,7 +620,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 				closeFiles();
 				exit(3);
 			}
-			output+= (1<<5) + num;
+			output+= (1<<5) + (num&31);
 		}
 		else	/*Register value */
 		{
@@ -645,7 +645,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(3);
 		}
-		output += num;
+		output += (num&63);
 		break;
 	case 3: /*STB*/
 		SR = RegNum(pArg1);
@@ -664,7 +664,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(3);
 		}
-		output += num;
+		output += (num&63);
 		break;
 	case 4: /* JSR & JSRR */
 		if(*pArg2 != '\0' ||  *pArg3 != '\0' || *pArg4 != '\0')	
@@ -684,14 +684,14 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 				exit(1);
 			}
 			num = genOffset(temp->location,11);	/*genOffset will throw out of bounds error if necisarry */
-			output += num;
+			output += (num&2047);
 		} else {
 			/* JSRR */
 			BR = RegNum(pArg1);
 			output += BR<<6;
 		}
 		break;
-	case 5:	/*ADD */
+	case 5:	/*AND */
 		DR = RegNum(pArg1);
 		SR1 = RegNum(pArg2);
 		/*Too many arguments, or invalid */
@@ -712,7 +712,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 				closeFiles();
 				exit(3);
 			}
-			output+= (1<<5) + num;
+			output+= (1<<5) + (num & 31);
 		}
 		else	/*Register value */
 		{
@@ -737,7 +737,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(3);
 		}
-		output += num;
+		output += (num&63);
 		break;
 	case 7: /*STW*/
 		SR = RegNum(pArg1);
@@ -756,7 +756,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(3);
 		}
-		output += num;
+		output += (num&63);
 		break;
 	case 8:
 		/* RTI */
@@ -773,7 +773,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			exit(4);
 		}
 		output += (DR<<9)+(SR1<<6);	/*Common to all implementations */
-		if(*steer == 0)
+		if(*steer == 0)		/*XOR*/
 		{
 			SR2=RegNum(pArg3);
 			if(SR2 == -1)		/*Immediate Value */
@@ -785,7 +785,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 					closeFiles();
 					exit(3);
 				}
-				output+= (1<<5) + num;
+				output+= (1<<5) + (num&31);
 			}
 			else	/*Register value */
 			{
@@ -868,7 +868,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			exit(4);
 		}
 		num = genOffset(temp->location,9);	/*genOffset will throw out of bounds error if necisarry */
-		output=(DR<<9)+num;
+		output+=(DR<<9)+(num&511);
 		break;
 	case 15:	/*TRAP */
 		/*Must be hex */

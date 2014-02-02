@@ -28,8 +28,8 @@ int PC;				/*Program counter */
 int numSymbols = 0;	/*Number of labels in symbol table */
 Symbol table[255];		/*Array of symbol objects for symbol table */
 
-#define numCodes 24
-char* codes[numCodes] = {"add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop",
+#define numCodes 31
+char* codes[numCodes] = {"add", "and", "br", "brn", "brz", "brp", "brnz", "brnp", "brzp", "brnzp", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop",
 	"not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor",".orig",".fill",".end"};
 
 #define numIllegal 4
