@@ -633,7 +633,29 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		}
 		output += num;
 		break;
-	case 4:
+	case 4: /* JSR & JSRR */
+		if(*pArg2 != '\0' ||  *pArg3 != '\0' || *pArg4 != '\0')	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += *steering << 11;
+		if(*steering == 1) {
+			/* JSR */
+			num = toNum(pArg1);
+			if(num>1023 || num < -1024)	/* 6 Bits */
+			{
+				printf("Error: PCoffset11 Out of Bounds\n");
+				closeFiles();
+				exit(3);
+			}
+			output += num;
+		} else {
+			/* JSRR */
+			BR = RegNum(pArg1);
+			output += BR<<6;
+		}
 		break;
 	case 5:	/*ADD */
 		DR = RegNum(pArg1);
