@@ -408,7 +408,9 @@ int RegNum(char * reg)
 	RSHFL – steering=1
 	RSHFA – steering=3
 	NOP – steering=1
+	BR - steering=0
 	HALT – steering=1
+	TRAP - steering=0
 	NOT – steering=1
 	JMP – steering=0
 	RET – steering=1
@@ -418,15 +420,73 @@ int parseOpcode(char * opcode, int * steering)
 	*steering = 0;
 	if(strcmp(opcode, "add")==0)
 		return 1;
-	if(strcmp(opcode, ".end")==0)
-		return 17;
+	if(strcmp(opcode, "and")==0)
+		return 5;
+	if(strcmp(opcode, "brn")==0 ||  strcmp(opcode, "brz")==0 || strcmp(opcode, "brp")==0 || strcmp(opcode, "brnz")==0 || strcmp(opcode, "brnp")==0 || strcmp(opcode, "brzp")==0 || strcmp(opcode, "br")==0 || strcmp(opcode, "brnzp")==0)
+		return 0; 
+	if(strcmp(opcode, "jmp")==0)
+		return 12;    
+	if(strcmp(opcode, "jsr")==0) {
+		*steering = 1;
+		return 4;
+	}
+	if(strcmp(opcode, "jsrr")==0)
+		*steering = 0;
+		return 4;
+	}
+	if(strcmp(opcode, "ldb")==0)
+		return 2;
+
+	if(strcmp(opcode, "ldw")==0)
+		return 6;
+	if(strcmp(opcode, "lea")==0)
+		return 14;
 	if(strcmp(opcode, "not")==0)
 	{
 		*steering = 1;
 		return 9;
 	}
+	if(strcmp(opcode, "ret")==0) {
+		*steering = 1;
+		return 12;
+	}
+	if(strcmp(opcode, "rti")==0)
+		return 8;
+	if(strcmp(opcode,i "lshf")==0) {
+		*steering = 0;
+		return 13;
+	}
+	if(strcmp(opcode, "rshfl")==0) {
+		*steering = 1;
+		return 13;
+	}
+	if(strcmp(opcode, "rshfa")==0) {
+		*steering = 3;
+		return 13;
+	}
+	if(strcmp(opcode, "stb")==0)
+		return 3;
+	if(strcmp(opcode, "stw")==0)
+		return 7;
+	if(strcmp(opcode, "trap")==0) {
+		*steering = 0;
+		return 15;
+	}
 	if(strcmp(opcode, "xor")==0)
 		return 9;
+	if(strcmp(opcode, "halt")==0){
+		*steering = 1;
+		return 15;
+	}
+	if(strcmp(opcode, "nop")==0) {
+		*steering=1;
+		return 0;
+	}
+	if(strcmp(opcode, ".fill")==0)
+		return 16;
+	if(strcmp(opcode, ".end")==0)
+		return 17;
+
 	return -1;
 }
 
@@ -446,7 +506,35 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 	{
 	case 0:
 		break;
-	case 1:
+	case 1:			/*ADD */
+		DR = RegNum(pArg1);
+		SR1 = RegNum(pArg2);
+		/*Too many arguments, or invalid */
+		if(*pArg4 != '\0'||SR1 == -1 || DR == -1)	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += (DR<<9)+(SR1<<6);	/*Common to all implementations */
+		if(*steer == 0)
+		{
+			/* add from register */	
+			SR2=RegNum(pArg3);
+			output+=SR2;
+		}
+		else	/*Immediate Value */
+		{
+			num = toNum(pArg3);
+			if(num>15 || num < -16)	/*5 Bits */
+			{
+				printf("Error: Immediate Value Out of Bounds\n");
+				closeFiles();
+				exit(3);
+			}
+			output+= (1<<5) + num;
+		}
+
 		break;
 	case 2:
 		break;
