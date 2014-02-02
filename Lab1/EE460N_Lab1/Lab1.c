@@ -28,7 +28,6 @@ enum
    DONE, OK, EMPTY_LINE, END_OP
 };
 
-
 char *prgName   = NULL;	/*Name of Program */
 char *iFileName = NULL;	/*Input file name */
 char *oFileName = NULL;	/*Output file name */
@@ -69,7 +68,6 @@ int readLabel(FILE * pInfile, char * pLine, char ** pLabel);
 
 void addLabel(char** label);
 
-
 void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pArg3, char * pArg4);
 
 
@@ -89,14 +87,14 @@ int main(int argc, char** argv)
     char *iFileName = NULL;
     char *oFileName = NULL;
 
-    /*prgName   = argv[0];
+    prgName   = argv[0];
     iFileName = argv[1];
-    oFileName = argv[2];*/
+    oFileName = argv[2];
 
 	/*For manual testing*/
-	prgName   = "OutProgram";
+	/*prgName   = "OutProgram";
     iFileName = "test2.txt";
-    oFileName = "test2_out.txt";
+    oFileName = "test2_out.txt";*/
 
 	line=(char*)malloc((MAX_LINE_LENGTH+1)*sizeof(char));
     printf("program name = '%s'\n", prgName);
@@ -104,12 +102,12 @@ int main(int argc, char** argv)
     printf("output file name = '%s'\n", oFileName);
 
 	/* open the source file */
-     /*infile = fopen(argv[1], "r");
-     outfile = fopen(argv[2], "w");*/
+     infile = fopen(argv[1], "r");
+     outfile = fopen(argv[2], "w");
 
 	 /*For manual testing*/
-	infile = fopen(iFileName, "r");
-     outfile = fopen(oFileName, "w");
+	/*infile = fopen(iFileName, "r");
+     outfile = fopen(oFileName, "w");*/
  
      if (infile==NULL) {
        printf("Error: Cannot open file %s\n", argv[1]);
