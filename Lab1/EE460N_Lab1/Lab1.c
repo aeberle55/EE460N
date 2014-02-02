@@ -867,7 +867,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);
 		}
-		num = genOffset(temp->location,9)-1;	/*genOffset will throw out of bounds error if necisarry */
+		num = genOffset(temp->location,9);	/*genOffset will throw out of bounds error if necisarry */
 		output=(DR<<9)+num;
 		break;
 	case 15:	/*TRAP */
