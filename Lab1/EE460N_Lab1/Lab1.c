@@ -536,8 +536,10 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 {
 	int output = 0;
 	int DR = -1;
+	int SR = -1;
 	int SR1 = -1;
 	int SR2 = -1;
+	int BR = -1;
 	int num = -1;
 	Symbol* temp = NULL;
 	if(code <= 15 && code >= 0)
@@ -593,9 +595,43 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		}
 		
 		break;
-	case 2:
+	case 2: /*LDB*/
+		DR = RegNum(pArg1);
+		BR = RegNum(pArg2);
+		if(*pArg4 != '\0'|| BR == -1 || DR == -1)	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += (DR<<9)+(BR<<6);	
+		num = toNum(pArg3);
+		if(num>31 || num < -32)	/* 6 Bits */
+		{
+			printf("Error: Immediate Value Out of Bounds\n");
+			closeFiles();
+			exit(3);
+		}
+		output += num;
 		break;
-	case 3:
+	case 3: /*STB*/
+		SR = RegNum(pArg1);
+		BR = RegNum(pArg2);
+		if(*pArg4 != '\0'|| BR == -1 || SR == -1)	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += (SR<<9)+(BR<<6);	
+		num = toNum(pArg3);
+		if(num>31 || num < -32)	/* 6 Bits */
+		{
+			printf("Error: Immediate Value Out of Bounds\n");
+			closeFiles();
+			exit(3);
+		}
+		output += num;
 		break;
 	case 4:
 		break;
@@ -628,9 +664,43 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		}
 		
 		break;
-	case 6:
+	case 6: /*LDW*/
+		DR = RegNum(pArg1);
+		BR = RegNum(pArg2);
+		if(*pArg4 != '\0'|| BR == -1 || DR == -1)	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += (DR<<9)+(BR<<6);	
+		num = toNum(pArg3);
+		if(num>31 || num < -32)	/* 6 Bits */
+		{
+			printf("Error: Immediate Value Out of Bounds\n");
+			closeFiles();
+			exit(3);
+		}
+		output += num;
 		break;
-	case 7:
+	case 7: /*STW*/
+		SR = RegNum(pArg1);
+		BR = RegNum(pArg2);
+		if(*pArg4 != '\0'|| BR == -1 || SR == -1)	
+		{
+			printf("Error: invalid argument\n");
+			closeFiles();
+			exit(4);
+		}
+		output += (SR<<9)+(BR<<6);	
+		num = toNum(pArg3);
+		if(num>31 || num < -32)	/* 6 Bits */
+		{
+			printf("Error: Immediate Value Out of Bounds\n");
+			closeFiles();
+			exit(3);
+		}
+		output += num;
 		break;
 	case 8:
 		break;
