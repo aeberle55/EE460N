@@ -88,6 +88,7 @@ int main(int argc, char** argv)
 	 stat = EMPTY_LINE;
 	 while(stat == EMPTY_LINE)	/*Finds .orig and goes to next line */
 		stat=readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
+	fprintf(outfile, "0x%0.4X\n", origin); /*Prints out formated Hex version of .orig line */
 	 while(stat != DONE&&stat!=END_OP)
 	 {
 		 stat = readAndParse( infile, line, &label, &oCode, &a1, &a2, &a3, &a4);
@@ -552,15 +553,15 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);	
 		}
-		if(*steering==0 && *pArg1 != '\0') {
+		if(*steer==0 && *pArg1 != '\0') {
 			printf("Error: invalid argument\n");
 			closeFiles();
 			exit(4);
 		}
 		
-		if(*steering != 0) {
+		if(*steer != 0) {
 			/* br with nzp bits specified by steering */
-			output += *steering<<9;
+			output += *steer<<9;
 			num = genOffset(temp->location-PC,9);	/*genOffset will throw out of bounds error if necisarry */
 			output += num;
 		}	
@@ -640,8 +641,8 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);
 		}
-		output += *steering << 11;
-		if(*steering == 1) {
+		output += *steer << 11;
+		if(*steer == 1) {
 			/* JSR */
 			num = toNum(pArg1);
 			if(num>1023 || num < -1024)	/* 6 Bits */
@@ -725,6 +726,8 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		output += num;
 		break;
 	case 8:
+		/* RTI */
+		/* do nothing: bits 11-0 all 0 */	
 		break;
 	case 9:			/*XOR and NOT */
 		DR = RegNum(pArg1);
