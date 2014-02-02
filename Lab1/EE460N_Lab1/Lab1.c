@@ -1,9 +1,13 @@
 /*
+	Name 1: Austin Eberle
+	Name 2: George Netscher 
+	UTEID 1: aje542
+	UTEID 2: gmn255
+*/
+
+/*
 EE460N Lab1
 2/2/14
-
-Austin Eberle (eid?)
-George Netscher (gmn255)
 */
 
 #include "Lab1.h"
@@ -30,8 +34,8 @@ int main(int argc, char** argv)
 
 	/*For manual testing*/
 	prgName   = "OutProgram";
-    iFileName = "test1.txt";
-    oFileName = "labeOut.txt";
+    iFileName = "test2.txt";
+    oFileName = "test2_out.txt";
 
 	line=(char*)malloc((MAX_LINE_LENGTH+1)*sizeof(char));
     printf("program name = '%s'\n", prgName);
@@ -64,11 +68,11 @@ int main(int argc, char** argv)
 		 exit(4);
 	 }
 	 origin = toNum(a1);	/*Make sure origin is in correct range */
-	 if(origin < 0 || origin > 65535)
+	 if(origin < 0 || origin > 65534||origin%2 != 0)
 	 {
-		 printf("Error: Invalid Origin, must be between 0x0000 and 0xFFFF");
+		 printf("Error: Invalid Origin, must be between 0x0000 and 0xFFFF and even");
 		 closeFiles();
-		 exit(4);
+		 exit(3);
 	 }
 	 PC = origin;
 
@@ -82,6 +86,12 @@ int main(int argc, char** argv)
 		 /*Increment PC */
 		 if(stat == OK)
 			 PC+=2;
+	 }
+	 if(PC>65538)	/*Prevents program from exceeding memory location 0xFFFF*/
+	 {
+		 printf("Error: Program exceeds memory");
+		 closeFiles();
+		 exit(4);
 	 }
 	 rewind(infile);
 	 PC=origin;
@@ -404,7 +414,7 @@ int genOffset(int symbol_location, int maxDigits)
 	if(offset<lower_bound || offset>upper_bound){
 		printf("Error: PCoffset out of bounds\n");
 		closeFiles();
-		exit(3);
+		exit(4);
 	}	
 	return offset;
 }
@@ -676,7 +686,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		output += *steer << 11;
 		if(*steer == 1) {
 			/* JSR */
-			temp = searchSymbol(pArg2);
+			temp = searchSymbol(pArg1);
 			if(temp == NULL) {
 				/*Label not found in symbol tabel */
 				printf("Error: Unidentified Label\n");
