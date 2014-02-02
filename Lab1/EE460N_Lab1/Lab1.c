@@ -1,9 +1,9 @@
 /*
-	Todo:
-	processOpcode;	Generate the binary for each opcode
-	parseOpcode;	Generate numeric representation of opcode from string
-	genOffset;		Find an offset between two PC values
-	searchSymbol;	Finds Symbol tabel entry for character string
+EE460N Lab1
+2/2/14
+
+Austin Eberle (eid?)
+George Netscher (gmn255)
 */
 
 #include "Lab1.h"
@@ -374,15 +374,39 @@ int isOpcode(char * code)
 /*Return Null if not found or invalid label */
 Symbol* searchSymbol(char * sym)
 {
+	int i;
+	for(i=0; i<MAX_SYMBOLS; i++) {
+		if(strcmp(sym,table[i].label)==0) {
+			return table[i].location;
+		}
+	}
 	return NULL;
 }
 
 /*Generates an offset based on the current PC and an offset */
 /*Throws error is number of necessary digits for offset exceeds  */
 /*maxDigits; 1 otherwise */
-int genOffset(int offset, int maxDigits)
+int genOffset(int symbol_location, int maxDigits)
 {
-	return 0;
+	int offset, upper_bound, lower_bound;
+	offset = (symbol_location - (PC+2)) / 2;
+	if(maxDigits == 9) {
+		upper_bound=255;
+		lower_bound=-256;
+	} else if(maxDigits == 11) {
+		upper_bound=1023;
+		lower_bound=-1024;
+	} else {
+		printf("Error: PCoffset must be 9 or 11");
+		closeFiles();
+		exit(4);	
+	}
+	if(offset<lower_bound || offset>upper_bound){
+		printf("Error: PCoffset out of bounds\n");
+		closeFiles();
+		exit(3);
+	}	
+	return offset;
 }
 
 /*Returns integer corresponding to register of character string reg */
@@ -559,10 +583,18 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			exit(4);
 		}
 		
+		
 		if(*steer != 0) {
 			/* br with nzp bits specified by steering */
 			output += *steer<<9;
-			num = genOffset(temp->location-PC,9);	/*genOffset will throw out of bounds error if necisarry */
+			temp = searchSymbol(pArg2);
+			if(temp == NULL)	/*Label not found in symbol tabel */
+			{
+				printf("Error: Unidentified Label\n");
+				closeFiles();
+				exit(1);
+			}
+			num = genOffset(temp->location,9);	/*genOffset will throw out of bounds error if necisarry */
 			output += num;
 		}	
 		
@@ -644,13 +676,14 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 		output += *steer << 11;
 		if(*steer == 1) {
 			/* JSR */
-			num = toNum(pArg1);
-			if(num>1023 || num < -1024)	/* 6 Bits */
-			{
-				printf("Error: PCoffset11 Out of Bounds\n");
+			temp = searchSymbol(pArg2);
+			if(temp == NULL) {
+				/*Label not found in symbol tabel */
+				printf("Error: Unidentified Label\n");
 				closeFiles();
-				exit(3);
+				exit(1);
 			}
+			num = genOffset(temp->location,11);	/*genOffset will throw out of bounds error if necisarry */
 			output += num;
 		} else {
 			/* JSRR */
@@ -834,7 +867,7 @@ void processOpcode( int code, int * steer, char * pArg1, char * pArg2, char * pA
 			closeFiles();
 			exit(4);
 		}
-		num = genOffset(temp->location-PC,9);	/*genOffset will throw out of bounds error if necisarry */
+		num = genOffset(temp->location,9);	/*genOffset will throw out of bounds error if necisarry */
 		output=(DR<<9)+num;
 		break;
 	case 15:	/*TRAP */

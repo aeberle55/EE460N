@@ -45,7 +45,7 @@ Symbol* searchSymbol(char * sym);
 
 int RegNum(char * reg);
 
-int genOffset(int offset, int maxDigits);
+int genOffset(int symbol_location, int maxDigits);
 
 int parseOpcode(char * opcode, int * steering);
 
